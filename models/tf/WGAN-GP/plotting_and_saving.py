@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import chisquare
+from matplotlib.colors import from_levels_and_colors
+from scipy.stats import entropy
 
 path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
@@ -103,12 +104,12 @@ class Plot_and_save(object):
         fig.savefig("out/evolution_hist/sample_hist_%d.png" % epoch)
         plt.close()
 
-        chi2_l0 = chisquare(l0, self.E_l0)[1]
-        chi2_l1 = chisquare(l1, self.E_l1)[1]
-        chi2_l2 = chisquare(l2, self.E_l2)[1]
-        chi2_l3 = chisquare(l3, self.E_l3)[1]
-        chi2_l12 = chisquare(l12, self.E_l12)[1]
-        chi2_tot = chisquare(ltot, self.E_ltot)[1]
+        chi2_l0 = entropy(l0, self.E_l0)
+        chi2_l1 = entropy(l1, self.E_l1)
+        chi2_l2 = entropy(l2, self.E_l2)
+        chi2_l3 = entropy(l3, self.E_l3)
+        chi2_l12 = entropy(l12, self.E_l12)
+        chi2_tot = entropy(ltot, self.E_ltot)
 
         print('EPOCH: {}; L0: {:.3}; L1: {:.3}; L2: {:.3}; L3: {:.3}; L12: {:.3}; TOT: {:.3}'
               .format(epoch, chi2_l0, chi2_l1, chi2_l2, chi2_l3, chi2_l12, chi2_tot))
