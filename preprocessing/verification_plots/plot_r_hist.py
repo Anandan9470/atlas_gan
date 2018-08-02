@@ -132,8 +132,8 @@ r_l12 = []
 
 for n in range(0,1):
 
-    s = n*200
-    e = s+200
+    s = n*100
+    e = s+100
 
     event_range = range(s,e)
     xyzE = get_events(event_range)
@@ -167,32 +167,16 @@ for n in range(0,1):
         event_delta_phi = event_phi - phi.iloc[event, 0]
         event_delta_eta = event_eta - eta.iloc[event, 0]
 
-        event_eta_jacobi = np.abs(2*np.exp(-event_eta)/(1+np.exp(-2*event_eta)))
-        event_phi_mm = event_delta_phi * event_r
-        event_eta_mm = event_delta_eta * event_eta_jacobi * np.sqrt(event_r**2 + event_cartisian.z**2)
-
-        event_r_transformed = np.sqrt(event_phi_mm**2 + event_eta_mm**2)
-        event_alpha_transformed = np.arctan2(event_phi_mm, event_eta_mm)
-        event_z_transformed = event_r
-
-        data_dict = {'r':event_r_transformed, 'alpha':event_alpha_transformed, 'z':event_z_transformed,
+        data_dict = {'r':event_r, 'phi':event_delta_phi, 'eta':event_delta_eta,
                      'E':event_cartisian.E.values, 'colors':event_cartisian.colors.values}
 
-        event_cylindrical = pd.DataFrame(data_dict)
+        event_spherical = pd.DataFrame(data_dict)
 
-        r_lower, r_upper = 0, 350
-        alpha_lower, alpha_upper = -3.15, 3.15
-
-        event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                               r_angles=[r_lower, r_upper],
-                                               alpha_angles=[alpha_lower, alpha_upper],
-                                               layer='r')
-
-        r_l0.extend(event_cylindrical[event_cylindrical.colors=='r'].z.values.tolist())
-        r_l1.extend(event_cylindrical[event_cylindrical.colors=='b'].z.values.tolist())
-        r_l2.extend(event_cylindrical[event_cylindrical.colors=='g'].z.values.tolist())
-        r_l3.extend(event_cylindrical[event_cylindrical.colors=='c'].z.values.tolist())
-        r_l12.extend(event_cylindrical[event_cylindrical.colors=='m'].z.values.tolist())
+        r_l0.extend(event_spherical[event_spherical.colors=='r'].eta.values.tolist())
+        r_l1.extend(event_spherical[event_spherical.colors=='b'].eta.values.tolist())
+        r_l2.extend(event_spherical[event_spherical.colors=='g'].eta.values.tolist())
+        r_l3.extend(event_spherical[event_spherical.colors=='c'].eta.values.tolist())
+        r_l12.extend(event_spherical[event_spherical.colors=='m'].eta.values.tolist())
 
 r_l0 = np.array(r_l0)
 r_l1 = np.array(r_l1)

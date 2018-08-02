@@ -93,14 +93,18 @@ def filter_hits_by_dynamic_angle(event_spherical, layer, multiplier=2):
 
     return event_spherical
 
-def filter_hits_by_angle(event_spherical, layer, r_angles, alpha_angles):
+def filter_hits_by_angle(event_spherical, layer, angles1, angles2):
 
-    r_lower, r_upper = r_angles[0], r_angles[1]
-    alpha_lower, alpha_upper = alpha_angles[0], alpha_angles[1]
+    angles1_l, angles1_u = angles1[0], angles1[1]
+    angles2_l, angles2_u = angles2[0], angles2[1]
 
-    r_bool_array = np.logical_and(event_spherical.r.values<r_upper, event_spherical.r>r_lower)
-    alpha_bool_array = np.logical_and(event_spherical.alpha.values<alpha_upper, event_spherical.alpha>alpha_lower)
+    layer_bool = (event_spherical.colors == layer)
+
+    r_bool_array = np.logical_and(event_spherical.phi.values<angles1_u, event_spherical.phi>angles1_l)
+    alpha_bool_array = np.logical_and(event_spherical.eta.values<angles2_u, event_spherical.eta>angles2_l)
+
     event_bool_array = np.logical_and(r_bool_array, alpha_bool_array)
+    event_bool_array = np.logical_or(event_bool_array, np.logical_not(layer_bool))
 
     event_spherical = event_spherical[event_bool_array]
 
@@ -117,12 +121,12 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
 
     ref_cloud = PyntCloud(event_cylindrical_layer_wise)
     voxelgrid_id = ref_cloud.add_structure("voxelgrid", segments=segments)
-    feature_vector = ref_cloud.structures[voxelgrid_id].query_voxels(event_cylindrical_layer_wise.loc[:,['r','alpha','z']].values,
-                                                                     event_cylindrical_layer_wise.loc[:,'E'].values)
+    feature_vector = ref_cloud.structures[voxelgrid_id].query_voxels(event_cylindrical_layer_wise.reindex(columns=['r','phi','eta']).values,
+                                                                     event_cylindrical_layer_wise.reindex(columns=['E']).values.reshape((-1)))
 
     return feature_vector.reshape((-1,))
 
-for n in range(0,20):
+for n in range(80,100):
 
     s = n*100
     e = s+100
@@ -132,7 +136,7 @@ for n in range(0,20):
 
     print("Percentage complted: %10.2f" %(n))
 
-    batch = np.empty((0,230), float)
+    batch = np.empty((0,5000), float)
 
     for i, event in enumerate(event_range):
 
@@ -152,35 +156,44 @@ for n in range(0,20):
         phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3])
         r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
 
-        event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
-        event_phi = np.arctan2(event_cartisian.loc[:,'y'], event_cartisian.loc[:,'x'])
-        if abs(np.average(event_phi)-phi.loc[event,0] ) > 0.1:
-            continue
-            #event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
-        event_eta = np.arcsinh(event_cartisian.loc[:,'z']/event_r)
+        event_r = np.linalg.norm(event_cartisian.reindex(columns=['x','y']), axis=1)
+        event_phi = np.arctan2(event_cartisian.reindex(columns=['y']), event_cartisian.reindex(columns=['x'])).values.reshape((-1))
+#        if abs(np.average(event_phi)-phi.loc[event,0] ) > 0.1:
+#            event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
+        event_eta = np.arcsinh(event_cartisian.reindex(columns=['z']).values.reshape((-1))/event_r)
 
         event_delta_phi = event_phi - phi.iloc[event, 0]
         event_delta_eta = event_eta - eta.iloc[event, 0]
 
-        event_eta_jacobi = np.abs(2*np.exp(-event_eta)/(1+np.exp(-2*event_eta)))
-        event_phi_mm = event_delta_phi * event_r
-        event_eta_mm = event_delta_eta * event_eta_jacobi * np.sqrt(event_r**2 + event_cartisian.z**2)
-
-        event_r_transformed = np.sqrt(event_phi_mm**2 + event_eta_mm**2)
-        event_alpha_transformed = np.arctan2(event_phi_mm, event_eta_mm)
-        event_z_transformed = event_r
-
-        data_dict = {'r':event_r_transformed, 'alpha':event_alpha_transformed, 'z':event_z_transformed,
+        data_dict = {'r':event_r, 'phi':event_delta_phi, 'eta':event_delta_eta,
                      'E':event_cartisian.E.values, 'colors':event_cartisian.colors.values}
 
-        event_cylindrical = pd.DataFrame(data_dict)
+        event_spherical = pd.DataFrame(data_dict)
 
-        r_lower, r_upper = 0, 350
-        alpha_lower, alpha_upper = -3.15, 3.15
+        event_spherical =   filter_hits_by_angle(event_spherical,
+                                                 layer='r',
+                                                 angles1=[-0.4, 0.4],
+                                                 angles2=[-0.4, 0.4])
 
-        event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                                 r_angles=[r_lower, r_upper],
-                                                 alpha_angles=[alpha_lower, alpha_upper])
+        event_spherical =   filter_hits_by_angle(event_spherical,
+                                                 layer='b',
+                                                 angles1=[-0.1, 0.1],
+                                                 angles2=[-0.05, 0.05])
+
+        event_spherical =   filter_hits_by_angle(event_spherical,
+                                                 layer='g',
+                                                 angles1=[-0.15, 0.15],
+                                                 angles2=[-0.1, 0.1])
+
+        event_spherical =   filter_hits_by_angle(event_spherical,
+                                                 layer='c',
+                                                 angles1=[-0.15, 0.15],
+                                                 angles2=[-0.15, 0.15])
+
+        event_spherical =   filter_hits_by_angle(event_spherical,
+                                                 layer='m',
+                                                 angles1=[-0.2, 0.2],
+                                                 angles2=[-0.2, 0.2])
 
 #        fig = plt.figure()
 #        ax = fig.add_subplot(111, projection='3d')
@@ -189,48 +202,48 @@ for n in range(0,20):
 #        ax.set_ylabel('alpha')
 #        ax.set_zlabel('z')
 
-        layer_0_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.min())+1
-        layer_0_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.max())-1
-        layer_1_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='b'].z.min())+1
-        layer_1_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='b'].z.max())-1
-        layer_2_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='g'].z.min())+1
-        layer_2_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='g'].z.max())-1
-        layer_3_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='c'].z.min())+1
-        layer_3_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='c'].z.max())-1
-        layer_12_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.min())+1
-        layer_12_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.max())-1
+        layer_0_min = np.ceil(event_spherical.loc[event_spherical.colors=='r'].r.min())+1
+        layer_0_max = np.ceil(event_spherical.loc[event_spherical.colors=='r'].r.max())-1
+        layer_1_min = np.ceil(event_spherical.loc[event_spherical.colors=='b'].r.min())+1
+        layer_1_max = np.ceil(event_spherical.loc[event_spherical.colors=='b'].r.max())-1
+        layer_2_min = np.ceil(event_spherical.loc[event_spherical.colors=='g'].r.min())+1
+        layer_2_max = np.ceil(event_spherical.loc[event_spherical.colors=='g'].r.max())-1
+        layer_3_min = np.ceil(event_spherical.loc[event_spherical.colors=='c'].r.min())+1
+        layer_3_max = np.ceil(event_spherical.loc[event_spherical.colors=='c'].r.max())-1
+        layer_12_min = np.ceil(event_spherical.loc[event_spherical.colors=='m'].r.min())+1
+        layer_12_max = np.ceil(event_spherical.loc[event_spherical.colors=='m'].r.max())-1
 
         #r_binnings = np.loadtxt('r_binnings.csv', delimiter=',')
 
-        feature_vector_r = voxalize_by_layer(event_cylindrical,
+        feature_vector_r = voxalize_by_layer(event_spherical,
                                              layer='r',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_0_min, layer_0_max, 11
+                                             segments = [np.linspace(layer_0_min, layer_0_max, 11),
+                                                         np.linspace(-0.4, 0.4, 11),
+                                                         np.linspace(-0.4, 0.4, 11)])
 
-        feature_vector_b = voxalize_by_layer(event_cylindrical,
+        feature_vector_b = voxalize_by_layer(event_spherical,
                                              layer='b',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_1_min, layer_1_max, 1)])
+                                             segments = [np.linspace(layer_1_min, layer_1_max, 11),
+                                                         np.linspace(-0.1, 0.1, 11),
+                                                         np.linspace(-0.05, 0.05, 11)])
 
-        feature_vector_g = voxalize_by_layer(event_cylindrical,
+        feature_vector_g = voxalize_by_layer(event_spherical,
                                              layer='g',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_2_min, layer_2_max, 1)])
+                                             segments = [np.linspace(layer_2_min, layer_2_max, 11),
+                                                         np.linspace(-0.15, 0.15, 11),
+                                                         np.linspace(-0.1, 0.1, 11)])
 
-        feature_vector_c = voxalize_by_layer(event_cylindrical,
+        feature_vector_c = voxalize_by_layer(event_spherical,
                                              layer='c',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 1),
-                                                         np.linspace(layer_3_min, layer_3_max, 1)])
+                                             segments = [np.linspace(layer_3_min, layer_3_max, 11),
+                                                         np.linspace(-0.15, 0.15, 11),
+                                                         np.linspace(-0.15, 0.15, 11)])
 
-        feature_vector_m = voxalize_by_layer(event_cylindrical,
+        feature_vector_m = voxalize_by_layer(event_spherical,
                                              layer='m',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 1),
-                                                         np.linspace(layer_12_min, layer_12_max, 1)])
+                                             segments = [np.linspace(layer_12_min, layer_12_max, 11),
+                                                         np.linspace(-0.2, 0.2, 11),
+                                                         np.linspace(-0.2, 0.2, 11)])
 
         feature_vector = np.concatenate([feature_vector_r,
                                          feature_vector_b,
@@ -240,5 +253,4 @@ for n in range(0,20):
 
         batch = np.vstack((batch, feature_vector))
 
-
-    np.savetxt(path+"data/vectorized_cylindrical_230dim/data_v2/batch_%d.csv" %n, batch, delimiter=',')
+    np.savetxt(path+"data/data_v2/baseline/batches/batch_%d.csv" %n, batch, delimiter=',')
