@@ -69,12 +69,12 @@ E_tot = E_l0 + E_l1 + E_l2 + E_l3+ E_l12
 #E_l12 = E[:,220:230].sum(axis=1)
 #E_tot = E.sum(axis=1)
 
-batch = np.loadtxt(path+"data/data_v2/baseline/baseline.csv", delimiter=',')
-l0 = batch[:,:1000].sum(axis=1)
-l1 = batch[:,1000:2000].sum(axis=1)
-l2 = batch[:,2000:3000].sum(axis=1)
-l3 = batch[:,3000:4000].sum(axis=1)
-l12 = batch[:,4000:5000].sum(axis=1)
+batch = np.loadtxt(path+"data/data_v2/coordinate_transformation/coordinate_transformation.csv", delimiter=',')
+l0 = batch[:,:10].sum(axis=1)
+l1 = batch[:,10:110].sum(axis=1)
+l2 = batch[:,110:210].sum(axis=1)
+l3 = batch[:,210:220].sum(axis=1)
+l12 = batch[:,220:230].sum(axis=1)
 ltot = batch.sum(axis=1)
 
 fig = plt.figure(figsize=(20,10))

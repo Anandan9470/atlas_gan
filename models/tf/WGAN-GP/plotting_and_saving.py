@@ -9,14 +9,14 @@ class Plot_and_save(object):
 
     def __init__(self):
 
-        data = np.loadtxt(path+"data/data_v2/baseline/baseline.csv", delimiter=',')
+        data = np.loadtxt(path+"data/data_v2/coordinate_transformation/coordinate_transformation.csv", delimiter=',')
         self.data = data/data.max()
 
-        self.E_l0 = self.data[:,:1000].sum(axis=1)
-        self.E_l1 = self.data[:,1000:2000].sum(axis=1)
-        self.E_l2 = self.data[:,2000:3000].sum(axis=1)
-        self.E_l3 = self.data[:,3000:4000].sum(axis=1)
-        self.E_l12 = self.data[:,4000:5000].sum(axis=1)
+        self.E_l0 = self.data[:,:10].sum(axis=1)
+        self.E_l1 = self.data[:,10:110].sum(axis=1)
+        self.E_l2 = self.data[:,110:210].sum(axis=1)
+        self.E_l3 = self.data[:,210:220].sum(axis=1)
+        self.E_l12 = self.data[:,220:230].sum(axis=1)
         self.E_ltot = self.data.sum(axis=1)
 
         self.chi2_l0_list = []
@@ -58,11 +58,11 @@ class Plot_and_save(object):
 
     def sample_images(self, samples, epoch, is_last_epoch):
 
-        l0 = samples[:,:1000].sum(axis=1)
-        l1 = samples[:,1000:2000].sum(axis=1)
-        l2 = samples[:,2000:3000].sum(axis=1)
-        l3 = samples[:,3000:4000].sum(axis=1)
-        l12 = samples[:,4000:5000].sum(axis=1)
+        l0 = samples[:,:10].sum(axis=1)
+        l1 = samples[:,10:110].sum(axis=1)
+        l2 = samples[:,110:210].sum(axis=1)
+        l3 = samples[:,210:220].sum(axis=1)
+        l12 = samples[:,220:230].sum(axis=1)
         ltot = samples.sum(axis=1)
 
         fig = plt.figure(figsize=(20,10))

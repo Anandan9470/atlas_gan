@@ -1,20 +1,19 @@
 import tensorflow as tf
 import numpy as np
-import os
 import time
 from plotting_and_saving import Plot_and_save
 
 mb_size = 128
-X_dim = 5000
-z_dim = 500
+X_dim = 230
+z_dim = 20
 lam = 10
 n_disc = 5
 lr = 1e-3
-sample_intervel = 1
-ITER = 10
+sample_intervel = 1000
+ITER = 100000
 
 path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
-data = np.loadtxt(path+"data/data_v2/baseline/baseline.csv", delimiter=',')
+data = np.loadtxt(path+"data/data_v2/coordinate_transformation/coordinate_transformation.csv", delimiter=',')
 data = data/data.max()
 save_obj = Plot_and_save()
 
@@ -38,16 +37,16 @@ with tf.name_scope('latent_space'):
 
 with tf.name_scope('discriminator_weights'):
 
-    D_W1 = tf.Variable(xavier_init([X_dim, 5000]), name='D_W1')
-    D_b1 = tf.Variable(tf.zeros(shape=[5000]), name='D_b1')
+    D_W1 = tf.Variable(xavier_init([X_dim, 230]), name='D_W1')
+    D_b1 = tf.Variable(tf.zeros(shape=[230]), name='D_b1')
 
-    D_W2 = tf.Variable(xavier_init([5000, 5000]), name='D_W2')
-    D_b2 = tf.Variable(tf.zeros(shape=[5000]), name='D_b1')
+    D_W2 = tf.Variable(xavier_init([230, 230]), name='D_W2')
+    D_b2 = tf.Variable(tf.zeros(shape=[230]), name='D_b1')
 
-    D_W3 = tf.Variable(xavier_init([5000, 5000]), name='D_W2')
-    D_b3 = tf.Variable(tf.zeros(shape=[5000]), name='D_b1')
+    D_W3 = tf.Variable(xavier_init([230, 230]), name='D_W2')
+    D_b3 = tf.Variable(tf.zeros(shape=[230]), name='D_b1')
 
-    D_W4 = tf.Variable(xavier_init([5000, 1]), name='D_W3')
+    D_W4 = tf.Variable(xavier_init([230, 1]), name='D_W3')
     D_b4 = tf.Variable(tf.zeros(shape=[1]), name='D_b3')
 
     tf.summary.histogram('D_W1', D_W1)
@@ -63,17 +62,17 @@ with tf.name_scope('discriminator_weights'):
 
 with tf.name_scope('generator_weigths'):
 
-    G_W1 = tf.Variable(xavier_init([z_dim, 1250]), name='G_W1')
-    G_b1 = tf.Variable(tf.zeros(shape=[1250]), name='G_b1')
+    G_W1 = tf.Variable(xavier_init([z_dim, 50]), name='G_W1')
+    G_b1 = tf.Variable(tf.zeros(shape=[50]), name='G_b1')
 
-    G_W2 = tf.Variable(xavier_init([1250, 3000]), name='G_w2')
-    G_b2 = tf.Variable(tf.zeros(shape=[3000]), name='G_b2')
+    G_W2 = tf.Variable(xavier_init([50, 100]), name='G_w2')
+    G_b2 = tf.Variable(tf.zeros(shape=[100]), name='G_b2')
 
-    G_W3 = tf.Variable(xavier_init([3000, 4000]), name='G_w2')
-    G_b3 = tf.Variable(tf.zeros(shape=[4000]), name='G_b2')
+    G_W3 = tf.Variable(xavier_init([100, 200]), name='G_w2')
+    G_b3 = tf.Variable(tf.zeros(shape=[200]), name='G_b2')
 
-    G_W4 = tf.Variable(xavier_init([4000, 5000]), name='G_w2')
-    G_b4 = tf.Variable(tf.zeros(shape=[5000]), name='G_b2')
+    G_W4 = tf.Variable(xavier_init([200, 230]), name='G_w2')
+    G_b4 = tf.Variable(tf.zeros(shape=[230]), name='G_b2')
 
     tf.summary.histogram('G_W1', G_W1)
     tf.summary.histogram('G_b1', G_b1)

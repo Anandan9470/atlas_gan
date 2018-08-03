@@ -172,11 +172,11 @@ for n in range(0,1):
 
         event_spherical = pd.DataFrame(data_dict)
 
-        r_l0.extend(event_spherical[event_spherical.colors=='r'].eta.values.tolist())
-        r_l1.extend(event_spherical[event_spherical.colors=='b'].eta.values.tolist())
-        r_l2.extend(event_spherical[event_spherical.colors=='g'].eta.values.tolist())
-        r_l3.extend(event_spherical[event_spherical.colors=='c'].eta.values.tolist())
-        r_l12.extend(event_spherical[event_spherical.colors=='m'].eta.values.tolist())
+        r_l0.extend(event_spherical[event_spherical.colors=='r'].phi.values.tolist())
+        r_l1.extend(event_spherical[event_spherical.colors=='b'].phi.values.tolist())
+        r_l2.extend(event_spherical[event_spherical.colors=='g'].phi.values.tolist())
+        r_l3.extend(event_spherical[event_spherical.colors=='c'].phi.values.tolist())
+        r_l12.extend(event_spherical[event_spherical.colors=='m'].phi.values.tolist())
 
 r_l0 = np.array(r_l0)
 r_l1 = np.array(r_l1)
