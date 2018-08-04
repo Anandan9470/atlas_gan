@@ -14,11 +14,11 @@ class Plot_and_save(object):
         data = np.loadtxt(path+"data/data_v2/baseline/baseline.csv", delimiter=',')
         self.data = data/data.max()
 
-        self.E_l0 = self.data[:,:1000].sum(axis=1)
-        self.E_l1 = self.data[:,1000:2000].sum(axis=1)
-        self.E_l2 = self.data[:,2000:3000].sum(axis=1)
-        self.E_l3 = self.data[:,3000:4000].sum(axis=1)
-        self.E_l12 = self.data[:,4000:5000].sum(axis=1)
+        self.E_l0 = self.data[:,:10].sum(axis=1)
+        self.E_l1 = self.data[:,10:110].sum(axis=1)
+        self.E_l2 = self.data[:,110:210].sum(axis=1)
+        self.E_l3 = self.data[:,210:220].sum(axis=1)
+        self.E_l12 = self.data[:,220:230].sum(axis=1)
         self.E_ltot = self.data.sum(axis=1)
 
         self.chi2_l0_list = []
@@ -28,43 +28,13 @@ class Plot_and_save(object):
         self.chi2_l12_list = []
         self.chi2_tot_list = []
 
-    def make_2D_plots(self, samples, epoch):
-
-        gen_imgs = samples[np.random.choice(samples.shape[0], 4, replace=False)]
-        gen_imgs = np.log(gen_imgs+10e-5)
-
-        r, c = 2, 2
-        fig, axs = plt.subplots(r, c)
-        cnt = 0
-        for i in range(r):
-            for j in range(c):
-
-                img = np.reshape(gen_imgs[cnt], newshape=(10,23), order='F')
-
-                num_levels = 20
-                vmin, vmax = img.min(), img.max()
-                midpoint = 0
-                levels = np.linspace(vmin, vmax, num_levels)
-                midp = np.mean(np.c_[levels[:-1], levels[1:]], axis=1)
-                vals = np.interp(midp, [vmin, midpoint, vmax], [0, 0.5, 1])
-                colors = plt.cm.seismic(vals)
-                cmap, norm = from_levels_and_colors(levels, colors)
-
-                im = axs[i,j].imshow(img, cmap=cmap, norm=norm, interpolation='none')
-                fig.colorbar(im, ax=axs[i,j])
-                axs[i,j].axis('off')
-                cnt += 1
-
-        fig.savefig("out/sample_%d.png" % epoch)
-        plt.close()
-
     def sample_images(self, samples, epoch, is_last_epoch):
 
-        l0 = samples[:,:1000].sum(axis=1)
-        l1 = samples[:,1000:2000].sum(axis=1)
-        l2 = samples[:,2000:3000].sum(axis=1)
-        l3 = samples[:,3000:4000].sum(axis=1)
-        l12 = samples[:,4000:5000].sum(axis=1)
+        l0 = samples[:,:10].sum(axis=1)
+        l1 = samples[:,10:110].sum(axis=1)
+        l2 = samples[:,110:210].sum(axis=1)
+        l3 = samples[:,210:220].sum(axis=1)
+        l12 = samples[:,220:230].sum(axis=1)
         ltot = samples.sum(axis=1)
 
         fig = plt.figure(figsize=(20,10))
@@ -84,7 +54,7 @@ class Plot_and_save(object):
         ax3.hist(self.E_l2, bins=50, histtype=u'step',label='Original')
         ax3.hist(l2, bins=50, histtype=u'step',label='Generated')
         ax3.set_title('Layer 2')
-        ax3.legend()
+        ax3.legend(bbox_to_anchor=(0.01, 1), loc=2)
 
         ax4 = fig.add_subplot(234)
         ax4.hist(self.E_l3, bins=50, histtype=u'step',label='Original')
@@ -102,7 +72,7 @@ class Plot_and_save(object):
         ax6.hist(self.E_ltot, bins=50, histtype=u'step',label='Original')
         ax6.hist(ltot, bins=50, histtype=u'step',label='Generated')
         ax6.set_title('All layers')
-        ax6.legend()
+        ax6.legend(bbox_to_anchor=(0.01, 1), loc=2)
         fig.savefig("out/evolution_hist/sample_hist_%d.png" % epoch)
         plt.close()
 
@@ -149,7 +119,7 @@ class Plot_and_save(object):
             ax6 = fig.add_subplot(236)
             ax6.plot(self.chi2_tot_list)
             ax6.set_title('All layers')
-            fig.savefig("out/chi2/chi2.png")
+            fig.savefig("out/metric/metric.png")
             plt.close()
 
             chi2s = np.vstack([self.chi2_l0_list,
@@ -159,7 +129,7 @@ class Plot_and_save(object):
                                self.chi2_l12_list,
                                self.chi2_tot_list])
 
-            np.savetxt("out/chi2/chi2.csv", chi2s, delimiter=',')
+            np.savetxt("out/metric/metric.csv", chi2s, delimiter=',')
 
 
 
