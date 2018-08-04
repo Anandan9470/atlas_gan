@@ -115,3 +115,4 @@ ax6.set_title('All layers')
 ax6.legend(bbox_to_anchor=(0.01, 1), loc=2)
 plt.show()
 
+

@@ -7,8 +7,8 @@ from plotting_and_saving import Plot_and_save
 mb_size = 128
 X_dim = 230
 z_dim = 20
-ITER = 100000
-sample_intervel = 1000
+ITER = 20
+sample_intervel = 1
 
 path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 data = np.loadtxt(path+"data/data_v2/baseline/baseline.csv", delimiter=',')

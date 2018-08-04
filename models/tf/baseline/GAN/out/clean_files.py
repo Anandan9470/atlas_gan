@@ -1,7 +1,7 @@
 import os
 import glob
 
-files = glob.glob('./chi2/*')
+files = glob.glob('./metric/*')
 for f in files:
     os.remove(f)
 
