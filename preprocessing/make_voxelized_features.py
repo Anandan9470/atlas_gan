@@ -136,7 +136,7 @@ for n in range(80,100):
 
     print("Percentage complted: %10.2f" %(n))
 
-    batch = np.empty((0,5000), float)
+    batch = np.empty((0,230), float)
 
     for i, event in enumerate(event_range):
 
@@ -158,8 +158,8 @@ for n in range(80,100):
 
         event_r = np.linalg.norm(event_cartisian.reindex(columns=['x','y']), axis=1)
         event_phi = np.arctan2(event_cartisian.reindex(columns=['y']), event_cartisian.reindex(columns=['x'])).values.reshape((-1))
-#        if abs(np.average(event_phi)-phi.loc[event,0] ) > 0.1:
-#            event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
+        if abs(np.average(event_phi)-phi.loc[event,0] ) > 0.1:
+            event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
         event_eta = np.arcsinh(event_cartisian.reindex(columns=['z']).values.reshape((-1))/event_r)
 
         event_delta_phi = event_phi - phi.iloc[event, 0]
@@ -217,32 +217,32 @@ for n in range(80,100):
 
         feature_vector_r = voxalize_by_layer(event_spherical,
                                              layer='r',
-                                             segments = [np.linspace(layer_0_min, layer_0_max, 11),
-                                                         np.linspace(-0.4, 0.4, 11),
+                                             segments = [np.linspace(layer_0_min, layer_0_max, 1),
+                                                         np.linspace(-0.4, 0.4, 1),
                                                          np.linspace(-0.4, 0.4, 11)])
 
         feature_vector_b = voxalize_by_layer(event_spherical,
                                              layer='b',
-                                             segments = [np.linspace(layer_1_min, layer_1_max, 11),
+                                             segments = [np.linspace(layer_1_min, layer_1_max, 1),
                                                          np.linspace(-0.1, 0.1, 11),
                                                          np.linspace(-0.05, 0.05, 11)])
 
         feature_vector_g = voxalize_by_layer(event_spherical,
                                              layer='g',
-                                             segments = [np.linspace(layer_2_min, layer_2_max, 11),
+                                             segments = [np.linspace(layer_2_min, layer_2_max, 1),
                                                          np.linspace(-0.15, 0.15, 11),
                                                          np.linspace(-0.1, 0.1, 11)])
 
         feature_vector_c = voxalize_by_layer(event_spherical,
                                              layer='c',
-                                             segments = [np.linspace(layer_3_min, layer_3_max, 11),
-                                                         np.linspace(-0.15, 0.15, 11),
+                                             segments = [np.linspace(layer_3_min, layer_3_max, 1),
+                                                         np.linspace(-0.15, 0.15, 1),
                                                          np.linspace(-0.15, 0.15, 11)])
 
         feature_vector_m = voxalize_by_layer(event_spherical,
                                              layer='m',
-                                             segments = [np.linspace(layer_12_min, layer_12_max, 11),
-                                                         np.linspace(-0.2, 0.2, 11),
+                                             segments = [np.linspace(layer_12_min, layer_12_max, 1),
+                                                         np.linspace(-0.2, 0.2, 1),
                                                          np.linspace(-0.2, 0.2, 11)])
 
         feature_vector = np.concatenate([feature_vector_r,
