@@ -10,7 +10,8 @@ z_dim = 20
 ITER = 20
 sample_intervel = 1
 
-path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+#path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+path = "/afs/inf.ed.ac.uk/user/s17/s1749290/Code/"
 data = np.loadtxt(path+"data/data_v2/baseline/baseline.csv", delimiter=',')
 data = data/data.max()
 save_obj = Plot_and_save()
