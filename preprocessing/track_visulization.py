@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 
-filename = "NTUP_FCS.13289379._000001.pool.root.1"
 path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+#filename = "65/NTUP_FCS.13289379._000001.pool.root.1" #65
+filename = "524/NTUP_FCS.13744326._000001.pool.root.1" #524
 
 def get_one_event(layer=1, requireEnergy=True):
 
@@ -132,15 +133,15 @@ ax.scatter(x, y, z, s=15, c='c', marker='.', label='Layer 3', alpha=0.5)
 x, y, z, _ = get_one_event(layer=12)
 ax.scatter(x, y, z, s=15, c='m', marker='.', label='Layer 12', alpha=0.5)
 
-#eta = pd.read_csv(path+"data/truth_angles/"+filename+"_eta.csv", header=None, usecols=[0, 1, 2, 3, 12])
-#phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3, 12])
-#r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3, 12])
-#
-#X = r*phi.apply(np.cos)
-#Y = r*phi.apply(np.sin)
-#Z = r*eta.apply(np.sinh)
-#
-#ax.plot(X.iloc[0,:], Y.iloc[0,:], Z.iloc[0,:], c='k', alpha=0.5)
+eta = pd.read_csv(path+"data/truth_angles/"+filename+"_eta.csv", header=None, usecols=[0, 1, 2, 3, 12])
+phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3, 12])
+r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3, 12])
+
+X = r*phi.apply(np.cos)
+Y = r*phi.apply(np.sin)
+Z = r*eta.apply(np.sinh)
+
+ax.plot(X.iloc[0,:], Y.iloc[0,:], Z.iloc[0,:], c='k', alpha=1)
 #ax.plot(X.iloc[20,:], Y.iloc[20,:], Z.iloc[20,:], c='k', alpha=0.5)
 #ax.plot(X.iloc[2,:], Y.iloc[2,:], Z.iloc[2,:])
 

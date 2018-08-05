@@ -13,8 +13,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from math import pi
 
-path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
-filename = "NTUP_FCS.13289379._000001.pool.root.1"
+path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+#filename = "65/NTUP_FCS.13289379._000001.pool.root.1" #65
+filename = "524/NTUP_FCS.13744326._000001.pool.root.1" #524
 
 def get_hits(event_range=range(0,10), layer=0):
 
@@ -93,18 +94,22 @@ def filter_hits_by_dynamic_angle(event_spherical, layer, multiplier=2):
 
     return event_spherical
 
-def filter_hits_by_angle(event_spherical, r_angles, alpha_angles):
+def filter_hits_by_angle(event_cylindrical, layer, r_lim, alpha_lim):
 
-    r_lower, r_upper = r_angles[0], r_angles[1]
-    alpha_lower, alpha_upper = alpha_angles[0], alpha_angles[1]
+    r_lim_l, r_lim_u = r_lim[0], r_lim[1]
+    alpha_lim_l, alpha_lim_u = alpha_lim[0], alpha_lim[1]
 
-    r_bool_array = np.logical_and(event_spherical.r.values<r_upper, event_spherical.r>r_lower)
-    alpha_bool_array = np.logical_and(event_spherical.alpha.values<alpha_upper, event_spherical.alpha>alpha_lower)
+    layer_bool = (event_cylindrical.colors == layer)
+
+    r_bool_array = np.logical_and(event_cylindrical.r.values<r_lim_u, event_cylindrical.r>r_lim_l)
+    alpha_bool_array = np.logical_and(event_cylindrical.alpha.values<alpha_lim_u, event_cylindrical.alpha>alpha_lim_l)
+
     event_bool_array = np.logical_and(r_bool_array, alpha_bool_array)
+    event_bool_array = np.logical_or(event_bool_array, np.logical_not(layer_bool))
 
-    event_spherical = event_spherical[event_bool_array]
+    event_cylindrical = event_cylindrical[event_bool_array]
 
-    return event_spherical
+    return event_cylindrical
 
 def voxalize_by_layer(event_cylindrical, layer, segments):
 
@@ -122,11 +127,11 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     return feature_vector#.reshape((-1,))
 
 
-s,e = 0,250
+s,e = 0,5
 event_range = range(s,e)
-#xyzE = get_events(event_range)
+xyzE = get_events(event_range)
 
-event=243
+event=0
 event_cartisian = xyzE[event]
 
 event_cartisian = pd.DataFrame(event_cartisian, columns=['x','y','z','E','colors'])
@@ -145,8 +150,8 @@ r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecol
 
 event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
 event_phi = np.arctan2(event_cartisian.loc[:,'y'],event_cartisian.loc[:,'x'])
-if np.abs(event_phi.mean()-phi) > 0.1:
-    continue
+#if np.abs(event_phi.mean()-phi) > 0.1:
+#    continue
 event_eta = np.arcsinh(event_cartisian.loc[:,'z']/event_r)
 
 event_delta_phi = event_phi - phi.iloc[event, 0]
@@ -175,9 +180,30 @@ ax.set_zlabel('eta')
 r_lower, r_upper = 0, 350
 alpha_lower, alpha_upper = -3.14, 3.14
 
-event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                         r_angles=[r_lower, r_upper],
-                                         alpha_angles=[alpha_lower, alpha_upper])
+event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                         layer='r',
+                                         r_lim=[0, 350],
+                                         alpha_lim=[-3.15, 3.15])
+
+event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                         layer='b',
+                                         r_lim=[0, 350],
+                                         alpha_lim=[-3.15, 3.15])
+
+event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                         layer='g',
+                                         r_lim=[0, 350],
+                                         alpha_lim=[-3.15, 3.15])
+
+event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                         layer='c',
+                                         r_lim=[0, 350],
+                                         alpha_lim=[-3.15, 3.15])
+
+event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                         layer='m',
+                                         r_lim=[0, 350],
+                                         alpha_lim=[-3.15, 3.15])
 
 layer_0_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.min())+1
 layer_0_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.max())-1

@@ -13,8 +13,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from math import pi
 
-path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
-filename = "NTUP_FCS.13289379._000001.pool.root.1"
+path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+#filename = "65/NTUP_FCS.13289379._000001.pool.root.1" #65
+filename = "524/NTUP_FCS.13744326._000001.pool.root.1" #524
 
 def get_hits(event_range, layer):
 
@@ -93,18 +94,22 @@ def filter_hits_by_dynamic_angle(event_spherical, layer, multiplier=2):
 
     return event_spherical
 
-def filter_hits_by_angle(event_spherical, layer, r_angles, alpha_angles):
+def filter_hits_by_angle(event_cylindrical, layer, r_lim, alpha_lim):
 
-    r_lower, r_upper = r_angles[0], r_angles[1]
-    alpha_lower, alpha_upper = alpha_angles[0], alpha_angles[1]
+    r_lim_l, r_lim_u = r_lim[0], r_lim[1]
+    alpha_lim_l, alpha_lim_u = alpha_lim[0], alpha_lim[1]
 
-    r_bool_array = np.logical_and(event_spherical.r.values<r_upper, event_spherical.r>r_lower)
-    alpha_bool_array = np.logical_and(event_spherical.alpha.values<alpha_upper, event_spherical.alpha>alpha_lower)
+    layer_bool = (event_cylindrical.colors == layer)
+
+    r_bool_array = np.logical_and(event_cylindrical.r.values<r_lim_u, event_cylindrical.r>r_lim_l)
+    alpha_bool_array = np.logical_and(event_cylindrical.alpha.values<alpha_lim_u, event_cylindrical.alpha>alpha_lim_l)
+
     event_bool_array = np.logical_and(r_bool_array, alpha_bool_array)
+    event_bool_array = np.logical_or(event_bool_array, np.logical_not(layer_bool))
 
-    event_spherical = event_spherical[event_bool_array]
+    event_cylindrical = event_cylindrical[event_bool_array]
 
-    return event_spherical
+    return event_cylindrical
 
 def voxalize_by_layer(event_cylindrical, layer, segments):
 
@@ -117,8 +122,8 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
 
     ref_cloud = PyntCloud(event_cylindrical_layer_wise)
     voxelgrid_id = ref_cloud.add_structure("voxelgrid", segments=segments)
-    feature_vector = ref_cloud.structures[voxelgrid_id].query_voxels(event_cylindrical_layer_wise.loc[:,['r','alpha','z']].values,
-                                                                     event_cylindrical_layer_wise.loc[:,'E'].values)
+    feature_vector = ref_cloud.structures[voxelgrid_id].query_voxels(event_cylindrical_layer_wise.reindex(columns=['r','alpha','z']).values,
+                                                                     event_cylindrical_layer_wise.reindex(columns=['E']).values.reshape((-1)))
 
     return feature_vector.reshape((-1,))
 
@@ -152,12 +157,11 @@ for n in range(0,20):
         phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3])
         r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
 
-        event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
-        event_phi = np.arctan2(event_cartisian.loc[:,'y'], event_cartisian.loc[:,'x'])
+        event_r = np.linalg.norm(event_cartisian.reindex(columns=['x','y']), axis=1)
+        event_phi = np.arctan2(event_cartisian.reindex(columns=['y']), event_cartisian.reindex(columns=['x'])).values.reshape((-1))
         if abs(np.average(event_phi)-phi.loc[event,0] ) > 0.1:
-            continue
-            #event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
-        event_eta = np.arcsinh(event_cartisian.loc[:,'z']/event_r)
+            event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
+        event_eta = np.arcsinh(event_cartisian.reindex(columns=['z']).values.reshape((-1))/event_r)
 
         event_delta_phi = event_phi - phi.iloc[event, 0]
         event_delta_eta = event_eta - eta.iloc[event, 0]
@@ -175,12 +179,30 @@ for n in range(0,20):
 
         event_cylindrical = pd.DataFrame(data_dict)
 
-        r_lower, r_upper = 0, 350
-        alpha_lower, alpha_upper = -3.15, 3.15
+        event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                                 layer='r',
+                                                 r_lim=[0, 350],
+                                                 alpha_lim=[-3.15, 3.15])
 
-        event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                                 r_angles=[r_lower, r_upper],
-                                                 alpha_angles=[alpha_lower, alpha_upper])
+        event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                                 layer='b',
+                                                 r_lim=[0, 350],
+                                                 alpha_lim=[-3.15, 3.15])
+
+        event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                                 layer='g',
+                                                 r_lim=[0, 350],
+                                                 alpha_lim=[-3.15, 3.15])
+
+        event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                                 layer='c',
+                                                 r_lim=[0, 350],
+                                                 alpha_lim=[-3.15, 3.15])
+
+        event_cylindrical =   filter_hits_by_angle(event_cylindrical,
+                                                 layer='m',
+                                                 r_lim=[0, 350],
+                                                 alpha_lim=[-3.15, 3.15])
 
 #        fig = plt.figure()
 #        ax = fig.add_subplot(111, projection='3d')
@@ -200,37 +222,35 @@ for n in range(0,20):
         layer_12_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.min())+1
         layer_12_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.max())-1
 
-        #r_binnings = np.loadtxt('r_binnings.csv', delimiter=',')
-
         feature_vector_r = voxalize_by_layer(event_cylindrical,
                                              layer='r',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_0_min, layer_0_max, 11
+                                             segments = [np.linspace(0, 350, 11),
+                                                         np.linspace(-3.15, 3.15, 1),
+                                                         np.linspace(layer_0_min, layer_0_max, 1)])
 
         feature_vector_b = voxalize_by_layer(event_cylindrical,
                                              layer='b',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
+                                             segments = [np.linspace(0, 350, 11),
+                                                         np.linspace(-3.15, 3.15, 11),
                                                          np.linspace(layer_1_min, layer_1_max, 1)])
 
         feature_vector_g = voxalize_by_layer(event_cylindrical,
                                              layer='g',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
+                                             segments = [np.linspace(0, 350, 11),
+                                                         np.linspace(-3.15, 3.15, 11),
                                                          np.linspace(layer_2_min, layer_2_max, 1)])
 
         feature_vector_c = voxalize_by_layer(event_cylindrical,
                                              layer='c',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 1),
-                                                         np.linspace(layer_3_min, layer_3_max, 1)])
+                                             segments = [np.linspace(0, 350, 11),
+                                                         np.linspace(-3.15, 3.15, 1),
+                                                         np.linspace(layer_2_min, layer_2_max, 1)])
 
         feature_vector_m = voxalize_by_layer(event_cylindrical,
                                              layer='m',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 1),
-                                                         np.linspace(layer_12_min, layer_12_max, 1)])
+                                             segments = [np.linspace(0, 350, 11),
+                                                         np.linspace(-3.15, 3.15, 1),
+                                                         np.linspace(layer_2_min, layer_2_max, 1)])
 
         feature_vector = np.concatenate([feature_vector_r,
                                          feature_vector_b,
@@ -240,5 +260,4 @@ for n in range(0,20):
 
         batch = np.vstack((batch, feature_vector))
 
-
-    np.savetxt(path+"data/vectorized_cylindrical_230dim/data_v2/batch_%d.csv" %n, batch, delimiter=',')
+    np.savetxt(path+"data/data_v2/524/coordinate_transformation/batches/batch_%d.csv" %n, batch, delimiter=',')

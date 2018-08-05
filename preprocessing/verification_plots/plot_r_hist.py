@@ -12,11 +12,9 @@ from pyntcloud import PyntCloud
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-import warnings
-warnings.filterwarnings("ignore")
-
-path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
-filename = "NTUP_FCS.13289379._000001.pool.root.1"
+path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+filename = "65/NTUP_FCS.13289379._000001.pool.root.1" #65
+#filename = "524/NTUP_FCS.13744326._000001.pool.root.1" #524
 
 def get_hits(event_range=range(0,10), layer=0):
 
@@ -132,15 +130,13 @@ r_l12 = []
 
 for n in range(0,1):
 
-    s = n*200
-    e = s+200
+    s = n*100
+    e = s+100
 
     event_range = range(s,e)
     xyzE = get_events(event_range)
 
     print("Percentage complted: %10.2f" %(n))
-
-    batch = np.empty((0,400), float)
 
     for i, event in enumerate(event_range):
 
@@ -180,19 +176,19 @@ for n in range(0,1):
 
         event_cylindrical = pd.DataFrame(data_dict)
 
-        r_lower, r_upper = 0, 350
-        alpha_lower, alpha_upper = -3.15, 3.15
+#        r_lower, r_upper = 0, 350
+#        alpha_lower, alpha_upper = -3.15, 3.15
+#
+#        event_cylindrical = filter_hits_by_angle(event_cylindrical,
+#                                                 r_angles=[r_lower, r_upper],
+#                                                 alpha_angles=[alpha_lower, alpha_upper],
+#                                                 layer='r')
 
-        event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                               r_angles=[r_lower, r_upper],
-                                               alpha_angles=[alpha_lower, alpha_upper],
-                                               layer='r')
-
-        r_l0.extend(event_cylindrical[event_cylindrical.colors=='r'].z.values.tolist())
-        r_l1.extend(event_cylindrical[event_cylindrical.colors=='b'].z.values.tolist())
-        r_l2.extend(event_cylindrical[event_cylindrical.colors=='g'].z.values.tolist())
-        r_l3.extend(event_cylindrical[event_cylindrical.colors=='c'].z.values.tolist())
-        r_l12.extend(event_cylindrical[event_cylindrical.colors=='m'].z.values.tolist())
+        r_l0.extend(event_cylindrical[event_cylindrical.colors=='r'].r.values.tolist())
+        r_l1.extend(event_cylindrical[event_cylindrical.colors=='b'].r.values.tolist())
+        r_l2.extend(event_cylindrical[event_cylindrical.colors=='g'].r.values.tolist())
+        r_l3.extend(event_cylindrical[event_cylindrical.colors=='c'].r.values.tolist())
+        r_l12.extend(event_cylindrical[event_cylindrical.colors=='m'].r.values.tolist())
 
 r_l0 = np.array(r_l0)
 r_l1 = np.array(r_l1)

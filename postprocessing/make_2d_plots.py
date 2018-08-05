@@ -15,7 +15,7 @@ path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_data():
 
-    data = np.loadtxt(path+"data/vectorized_cylindrical_230dim.csv", delimiter=',')
+    data = np.loadtxt(path+"data/data_v2/coordinate_transformation/coordinate_transformation.csv", delimiter=',')
     #data[data<10] = 0
     #data = data/data.max()
     #data = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
