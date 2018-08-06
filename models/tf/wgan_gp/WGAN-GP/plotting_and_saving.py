@@ -1,30 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
-from scipy.stats import entropy
+from stats import wasserstein_distance
 
-path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+#path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
+path = "/afs/inf.ed.ac.uk/user/s17/s1749290/Code/"
 
 class Plot_and_save(object):
 
     def __init__(self):
 
-        data = np.loadtxt(path+"data/data_v2/coordinate_transformation/coordinate_transformation.csv", delimiter=',')
-        self.data = data/data.max()
+        data = np.loadtxt(path+"data/data_v2/65/baseline/baseline.csv", delimiter=',')
 
-        self.E_l0 = self.data[:,:10].sum(axis=1)
-        self.E_l1 = self.data[:,10:110].sum(axis=1)
-        self.E_l2 = self.data[:,110:210].sum(axis=1)
-        self.E_l3 = self.data[:,210:220].sum(axis=1)
-        self.E_l12 = self.data[:,220:230].sum(axis=1)
-        self.E_ltot = self.data.sum(axis=1)
+        self.E_l0 = data[:,:10].sum(axis=1)
+        self.E_l1 = data[:,10:110].sum(axis=1)
+        self.E_l2 = data[:,110:210].sum(axis=1)
+        self.E_l3 = data[:,210:220].sum(axis=1)
+        self.E_l12 = data[:,220:230].sum(axis=1)
+        self.E_ltot = data.sum(axis=1)
 
-        self.chi2_l0_list = []
-        self.chi2_l1_list = []
-        self.chi2_l2_list = []
-        self.chi2_l3_list = []
-        self.chi2_l12_list = []
-        self.chi2_tot_list = []
+        self.dst_l0_list = []
+        self.dst_l1_list = []
+        self.dst_l2_list = []
+        self.dst_l3_list = []
+        self.dst_l12_list = []
+        self.dst_tot_list = []
 
     def make_2D_plots(self, samples, epoch):
 
@@ -101,63 +101,63 @@ class Plot_and_save(object):
         ax6.hist(ltot, bins=50, histtype=u'step',label='Processed')
         ax6.set_title('All layers')
         ax6.legend()
-        fig.savefig("out/evolution_hist/sample_hist_%d.png" % epoch)
+        fig.savefig("out/evolution_hist/sample_hist_%d.png" %(epoch+1))
         plt.close()
 
-        chi2_l0 = entropy(l0, self.E_l0)
-        chi2_l1 = entropy(l1, self.E_l1)
-        chi2_l2 = entropy(l2, self.E_l2)
-        chi2_l3 = entropy(l3, self.E_l3)
-        chi2_l12 = entropy(l12, self.E_l12)
-        chi2_tot = entropy(ltot, self.E_ltot)
+        dst_l0 = wasserstein_distance(l0, self.E_l0)
+        dst_l1 = wasserstein_distance(l1, self.E_l1)
+        dst_l2 = wasserstein_distance(l2, self.E_l2)
+        dst_l3 = wasserstein_distance(l3, self.E_l3)
+        dst_l12 = wasserstein_distance(l12, self.E_l12)
+        dst_tot = wasserstein_distance(ltot, self.E_ltot)
 
         print('EPOCH: {}; L0: {:.3}; L1: {:.3}; L2: {:.3}; L3: {:.3}; L12: {:.3}; TOT: {:.3}'
-              .format(epoch, chi2_l0, chi2_l1, chi2_l2, chi2_l3, chi2_l12, chi2_tot))
+              .format(epoch, dst_l0, dst_l1, dst_l2, dst_l3, dst_l12, dst_tot))
 
-        self.chi2_l0_list.append(chi2_l0)
-        self.chi2_l1_list.append(chi2_l1)
-        self.chi2_l2_list.append(chi2_l2)
-        self.chi2_l3_list.append(chi2_l3)
-        self.chi2_l12_list.append(chi2_l12)
-        self.chi2_tot_list.append(chi2_tot)
+        self.dst_l0_list.append(dst_l0)
+        self.dst_l1_list.append(dst_l1)
+        self.dst_l2_list.append(dst_l2)
+        self.dst_l3_list.append(dst_l3)
+        self.dst_l12_list.append(dst_l12)
+        self.dst_tot_list.append(dst_tot)
 
         if is_last_epoch:
 
             fig = plt.figure(figsize=(20,10))
             ax1 = fig.add_subplot(231)
-            ax1.plot(self.chi2_l0_list)
+            ax1.plot(self.dst_l0_list)
             ax1.set_title('Layer 0')
 
             ax2 = fig.add_subplot(232)
-            ax2.plot(self.chi2_l1_list)
+            ax2.plot(self.dst_l1_list)
             ax2.set_title('Layer 1')
 
             ax3 = fig.add_subplot(233)
-            ax3.plot(self.chi2_l2_list)
+            ax3.plot(self.dst_l2_list)
             ax3.set_title('Layer 2')
 
             ax4 = fig.add_subplot(234)
-            ax4.plot(self.chi2_l3_list)
+            ax4.plot(self.dst_l3_list)
             ax4.set_title('Layer 3')
 
             ax5 = fig.add_subplot(235)
-            ax5.plot(self.chi2_l12_list)
+            ax5.plot(self.dst_l12_list)
             ax5.set_title('Layer 12')
 
             ax6 = fig.add_subplot(236)
-            ax6.plot(self.chi2_tot_list)
+            ax6.plot(self.dst_tot_list)
             ax6.set_title('All layers')
-            fig.savefig("out/chi2/chi2.png")
+            fig.savefig("out/metric/metric.png")
             plt.close()
 
-            chi2s = np.vstack([self.chi2_l0_list,
-                               self.chi2_l1_list,
-                               self.chi2_l2_list,
-                               self.chi2_l3_list,
-                               self.chi2_l12_list,
-                               self.chi2_tot_list])
+            dsts = np.vstack([self.dst_l0_list,
+                               self.dst_l1_list,
+                               self.dst_l2_list,
+                               self.dst_l3_list,
+                               self.dst_l12_list,
+                               self.dst_tot_list])
 
-            np.savetxt("out/chi2/chi2.csv", chi2s, delimiter=',')
+            np.savetxt("out/metric/metric.csv", dsts, delimiter=',')
 
 
 

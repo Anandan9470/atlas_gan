@@ -9,6 +9,7 @@ X_dim = 230
 z_dim = 20
 ITER = 20
 sample_intervel = 1
+lr = 10e-4
 
 #path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 path = "/afs/inf.ed.ac.uk/user/s17/s1749290/Code/"
@@ -54,8 +55,8 @@ with tf.name_scope('discriminator_weights'):
     tf.summary.histogram('D_b2', D_b2)
     tf.summary.histogram('D_W3', D_W3)
     tf.summary.histogram('D_b3', D_b3)
-    tf.summary.histogram('D_W3', D_W4)
-    tf.summary.histogram('D_b3', D_b4)
+    tf.summary.histogram('D_W4', D_W4)
+    tf.summary.histogram('D_b4', D_b4)
 
     theta_D = [D_W1, D_W2, D_W3, D_W4, D_b1, D_b2, D_b3, D_b4]
 
@@ -85,7 +86,7 @@ with tf.name_scope('generator_weigths'):
     theta_G = [G_W1, G_W2, G_W3, G_W4, G_b1, G_b2, G_b3, G_b4]
 
 def sample_z(m, n):
-    return np.random.normal(-1., 1., size=[m, n])
+    return np.random.normal(0, 1., size=[m, n])
 
 def generator(z):
 
@@ -125,9 +126,9 @@ with tf.name_scope('G_loss'):
     tf.summary.scalar('G_loss', G_loss)
 
 with tf.name_scope('D_optimizer'):
-    D_solver = (tf.train.AdamOptimizer(learning_rate=1e-3).minimize(D_loss, var_list=theta_D))
+    D_solver = (tf.train.AdamOptimizer(learning_rate=lr).minimize(D_loss, var_list=theta_D))
 with tf.name_scope('G_optimizer'):
-    G_solver = (tf.train.AdamOptimizer(learning_rate=1e-3).minimize(G_loss, var_list=theta_G))
+    G_solver = (tf.train.AdamOptimizer(learning_rate=lr).minimize(G_loss, var_list=theta_G))
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
