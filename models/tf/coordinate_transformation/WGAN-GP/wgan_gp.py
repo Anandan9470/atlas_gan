@@ -8,9 +8,9 @@ X_dim = 230
 z_dim = 20
 lam = 10
 n_disc = 5
-lr = 1e-3
-sample_intervel = 1000
-ITER = 100000
+lr = 1e-4
+sample_intervel = 1
+ITER = 20
 
 path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 data = np.loadtxt(path+"data/data_v2/coordinate_transformation/coordinate_transformation.csv", delimiter=',')
@@ -18,9 +18,7 @@ data = data/data.max()
 save_obj = Plot_and_save()
 
 def get_data():
-
     while(True):
-
         batch = data[np.random.choice(data.shape[0], mb_size, replace=False)]
         yield batch
 data_gen = get_data()
@@ -41,13 +39,13 @@ with tf.name_scope('discriminator_weights'):
     D_b1 = tf.Variable(tf.zeros(shape=[230]), name='D_b1')
 
     D_W2 = tf.Variable(xavier_init([230, 230]), name='D_W2')
-    D_b2 = tf.Variable(tf.zeros(shape=[230]), name='D_b1')
+    D_b2 = tf.Variable(tf.zeros(shape=[230]), name='D_b2')
 
-    D_W3 = tf.Variable(xavier_init([230, 230]), name='D_W2')
-    D_b3 = tf.Variable(tf.zeros(shape=[230]), name='D_b1')
+    D_W3 = tf.Variable(xavier_init([230, 230]), name='D_W3')
+    D_b3 = tf.Variable(tf.zeros(shape=[230]), name='D_b3')
 
-    D_W4 = tf.Variable(xavier_init([230, 1]), name='D_W3')
-    D_b4 = tf.Variable(tf.zeros(shape=[1]), name='D_b3')
+    D_W4 = tf.Variable(xavier_init([230, 1]), name='D_W4')
+    D_b4 = tf.Variable(tf.zeros(shape=[1]), name='D_b4')
 
     tf.summary.histogram('D_W1', D_W1)
     tf.summary.histogram('D_b1', D_b1)
@@ -55,8 +53,8 @@ with tf.name_scope('discriminator_weights'):
     tf.summary.histogram('D_b2', D_b2)
     tf.summary.histogram('D_W3', D_W3)
     tf.summary.histogram('D_b3', D_b3)
-    tf.summary.histogram('D_W3', D_W4)
-    tf.summary.histogram('D_b3', D_b4)
+    tf.summary.histogram('D_W4', D_W4)
+    tf.summary.histogram('D_b4', D_b4)
 
     theta_D = [D_W1, D_W2, D_W3, D_W4, D_b1, D_b2, D_b3, D_b4]
 
@@ -68,11 +66,11 @@ with tf.name_scope('generator_weigths'):
     G_W2 = tf.Variable(xavier_init([50, 100]), name='G_w2')
     G_b2 = tf.Variable(tf.zeros(shape=[100]), name='G_b2')
 
-    G_W3 = tf.Variable(xavier_init([100, 200]), name='G_w2')
-    G_b3 = tf.Variable(tf.zeros(shape=[200]), name='G_b2')
+    G_W3 = tf.Variable(xavier_init([100, 200]), name='G_w3')
+    G_b3 = tf.Variable(tf.zeros(shape=[200]), name='G_b3')
 
-    G_W4 = tf.Variable(xavier_init([200, 230]), name='G_w2')
-    G_b4 = tf.Variable(tf.zeros(shape=[230]), name='G_b2')
+    G_W4 = tf.Variable(xavier_init([200, 230]), name='G_w4')
+    G_b4 = tf.Variable(tf.zeros(shape=[230]), name='G_b4')
 
     tf.summary.histogram('G_W1', G_W1)
     tf.summary.histogram('G_b1', G_b1)
@@ -86,7 +84,7 @@ with tf.name_scope('generator_weigths'):
     theta_G = [G_W1, G_W2, G_W3, G_W4, G_b1, G_b2, G_b3, G_b4]
 
 def sample_z(m, n):
-    return np.random.uniform(-1., 1., size=[m, n])
+    return np.random.normal(0, 1., size=[m, n])
 
 def generator(z):
     G_h1 = tf.nn.relu(tf.matmul(z, G_W1) + G_b1)
